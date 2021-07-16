@@ -5,30 +5,37 @@ const File = require('../models/file');
 const { v4: uuidv4 } = require('uuid');
 
 let storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/') ,
-    filename: (req, file, cb) => {
-        const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1E9)}${file.originalname}`;
-              cb(null, uniqueName)
-    } ,
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) => {
+    const uniqueName = `${Date.now()}-${Math.round(Math.random() * 1e9)}${
+      file.originalname
+    }`;
+    cb(null, uniqueName);
+  },
 });
 
-let upload = multer({ storage, limits:{ fileSize: 1000000 * 100 }, }).single('myfile'); //100mb
+let upload = multer({ storage, limits: { fileSize: 1000000 * 100 } }).single(
+  "myfile"
+); //100mb
 
-router.post('/', (req, res) => {
-    upload(req, res, async (err) => {
-      if (err) {
-        return res.status(500).send({ error: err.message });
-      }
-        const file = new File({
-            filename: req.file.filename,
-            pin:"0",
-            uuid: uuidv4(),
-            path: req.file.path,
-            size: req.file.size
-        });
-        const response = await file.save();
-        res.json({ file: `${process.env.APP_BASE_URL}/files/${response.uuid}` });
-      });
+router.post("/", (req, res) => {
+  upload(req, res, async (err) => {
+    if (!req.file) {
+      return res.json({ error: "file is required" });
+    }
+    if (err) {
+      return res.status(500).send({ error: err.message });
+    }
+    const file = new File({
+      filename: req.file.filename,
+      pin: "0",
+      uuid: uuidv4(),
+      path: req.file.path,
+      size: req.file.size,
+    });
+    const response = await file.save();
+    res.json({ file: `${process.env.APP_BASE_URL}/files/${response.uuid}` });
+  });
 });
 
 //set pin to the file object .....
@@ -56,7 +63,7 @@ router.delete("/delete", async (req, res) => {
   try {
     fs.unlinkSync(file.path);
     await file.delete();
-    return res.status(422).send({ success: "file deleted." });
+    return res.send({ success: "file deleted." });
   } catch (error) {
     res.status(500).send(error);
   }
