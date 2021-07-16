@@ -58,7 +58,7 @@ router.delete("/delete", async (req, res) => {
     await file.delete();
     return res.status(422).send({ success: "file deleted." });
   } catch (error) {
-    res.status(500).send("some error occur");
+    res.status(500).send(error);
   }
 });
 
