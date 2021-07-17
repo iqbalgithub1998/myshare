@@ -107,4 +107,32 @@ router.post('/send', async (req, res) => {
 
 });
 
+router.post("/contact", (req, res) => {
+  const { email, num, des } = req.body;
+  if (!email || !num) {
+    return res
+      .status(422)
+      .send({ error: "All fields are required except expiry." });
+  }
+  var today = new Date();
+  var dd = String(today.getDate()).padStart(2, "0");
+  var mm = String(today.getMonth() + 1).padStart(2, "0"); //January is 0!
+  var yyyy = today.getFullYear();
+
+  today = mm + "/" + dd + "/" + yyyy;
+  const sendMail = require("../services/mailService");
+  sendMail({
+    from: email,
+    to: "iqbalkhanak45@gmail.com",
+    subject: "myshare contact",
+    text: `${des} on Date ${today}`,
+  })
+    .then(() => {
+      return res.json({ success: true });
+    })
+    .catch((err) => {
+      return res.status(500).json({ error: "Error in email sending." });
+    });
+});
+
 module.exports = router;
